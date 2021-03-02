@@ -63,9 +63,9 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let alloted of alloted_examiners | filter : 'exam_code' : searchString | paginate: { itemsPerPage: 10, currentPage: p}; let idx = index">
+      <tr *ngFor="let alloted of paperStatus | filter : 'exam_code' : searchString | paginate: { itemsPerPage: 10, currentPage: p}; let idx = index">
         <td>
-            <input type="checkbox" name="cb" [checked]="all" value="{{alloted.exam_code}}" (change)="toggleSelection(alloted.subject_code)">
+            <input type="checkbox" name="cb" [checked]="all" value="{{alloted.exam_code}}" (change)="toggleSelection(alloted.exam_code)">
         </td>
         <th scope="row">{{idx+1}}</th>
         <td>{{alloted.exam_code}}</td>
@@ -80,7 +80,7 @@
               <div *ngIf="alloted.proposal == 'Generated'">{{alloted.proposal}}</div>
             </div>
             <div class="col-4" *ngIf="alloted.proposal !== 'Generated'">
-                <button (click)="updateStatus(alloted, alloted.ps_name, idx)" class="btn btn-sm btn-outline-success">Update</button>
+                <button (click)="updateStatus(alloted, 'proposal', idx)" class="btn btn-sm btn-outline-success">Update</button>
             </div>
           </div>
         </div></td>
@@ -95,7 +95,7 @@
               <div *ngIf="alloted.status === 'Received'">{{alloted.status}}</div>
             </div>
             <div class="col-4" *ngIf="alloted.status !== 'Received'">
-                <button (click)="updateStatus(alloted, alloted.ps_name, idx)" class="btn btn-sm btn-outline-success">Update</button>
+                <button (click)="updateStatus(alloted, 'status', idx)" class="btn btn-sm btn-outline-success">Update</button>
             </div>
           </div>
         </div></td>

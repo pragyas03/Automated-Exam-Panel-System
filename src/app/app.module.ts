@@ -33,6 +33,11 @@ import { ExamCodesComponent } from './exam-codes/exam-codes.component';
 import {EditorModule} from 'primeng/editor';
 import { DepartmentService } from './services/department.service';
 import { DepartmentsComponent } from './departments/departments.component';
+import { PaperValuationComponent } from './paper-valuation/paper-valuation.component';
+import { PaperValuationService } from './services/paper-valuation.service';
+import { PaperSetterComponent } from './paper-setter/paper-setter.component';
+import { PaperSetterService } from './services/paper-setter.service';
+import { PaperRecievedService } from './services/paper-recieved.service';
 
 
 
@@ -61,10 +66,11 @@ const appRoutes: Routes = [
       {path: 'scode', component: SubjectsComponent, outlet: 'sub'},
       {path: 'departments', component: DepartmentsComponent, outlet: 'sub'},
       {path: 'examcodes', component: ExamCodesComponent, outlet: 'sub'},
+      {path: 'paperSetter', component: PaperSetterComponent, outlet: 'sub'},
       {path: 'paperRecieved', component: PaperRecievedComponent, outlet: 'sub'},
+      {path: 'paperValuation', component: PaperValuationComponent, outlet: 'sub'},
     ]
   }
-
 ];
 
 @NgModule({
@@ -85,7 +91,9 @@ const appRoutes: Routes = [
     DashboardHomeComponent,
     UsersComponent,
     ExamCodesComponent,
-    DepartmentsComponent
+    DepartmentsComponent,
+    PaperValuationComponent,
+    PaperSetterComponent
   ],
   imports: [
     ToasterModule,
@@ -99,9 +107,9 @@ const appRoutes: Routes = [
     AngularFontAwesomeModule,
     HttpClientModule,
     NgxPaginationModule,
-    RouterModule.forRoot(appRoutes)
+    RouterModule.forRoot(appRoutes, {onSameUrlNavigation: 'reload'})
   ],
-  providers: [ExaminerService, SubjectService, AllotedService, UserService, NotificationService, DepartmentService],
+  providers: [ExaminerService, SubjectService, AllotedService, UserService, NotificationService, DepartmentService, PaperValuationService, PaperSetterService, PaperRecievedService],
   exports: [
     FilterPipe
   ],

@@ -1,19 +1,22 @@
 var express = require("express");
+var helmet = require('helmet');
 var app = express();
 var bodyParser = require("body-parser");
 var examinerRoutes = require("./routes/examiners.js");
 var subjectsRoutes = require("./routes/subjects.js");
 var allotedRoutes = require("./routes/alloted.js");
 var usersRoutes = require("./routes/users");
+var valuerRoutes = require("./routes/valuer");
 var departmentRoutes = require("./routes/department")
 var paperRoutes = require('./routes/papers');
+var paperSetterRoutes = require('./routes/paperSetter');
 var appointment = require('./routes/appointment');
 var notificationRoutes = require('./routes/notify');
-
 
 var jsonParser       = bodyParser.json({limit:1024*1024*20, type:'application/json'});
 var urlencodedParser = bodyParser.urlencoded({ extended:true,limit:1024*1024*20,type:'application/x-www-form-urlencoding' })
 
+app.use(helmet());
 app.use(jsonParser);
 app.use(express.urlencoded(urlencodedParser));
 
@@ -30,7 +33,9 @@ app.use('/subject', subjectsRoutes);
 app.use('/alloted', allotedRoutes);
 app.use('/users', usersRoutes);
 app.use('/papers', paperRoutes);
+app.use('/paperSetter', paperSetterRoutes);
 app.use('/appointment',appointment);
+app.use('/valuer',valuerRoutes);
 app.use('/department',departmentRoutes);
 app.use('/notify', notificationRoutes)
 

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AllotedService, AllotedItem, EmailItem } from '../services/alloted.service';
+import { AllotedService, AllotedItem } from '../services/alloted.service';
 import { HttpClient } from '@angular/common/http';
 import {CheckboxModule} from 'primeng/checkbox';
 import * as XLSX from 'xlsx';
@@ -7,8 +7,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import {ToasterModule, ToasterService} from 'angular5-toaster';
 import { NotificationService } from '../services/notification.service';
+import { ExaminerItem, ExaminerService, EmailItem } from '../services/examiner.service';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as quill from 'quill';
+import { PaperRecievedService, PaperStatus } from '../services/paper-recieved.service';
 
 declare const $;
 
@@ -16,10 +18,11 @@ declare const $;
   selector: 'app-paper-recieved',
   templateUrl: './paper-recieved.component.html',
   styleUrls: ['./paper-recieved.component.css']
-
 })
+
 export class PaperRecievedComponent implements OnInit {
 
+  examiners: ExaminerItem[];
   text1: string;
   myform: FormGroup;
   data: { to: any, subject: string, html: string };
@@ -27,13 +30,15 @@ export class PaperRecievedComponent implements OnInit {
 
   public selectedExaminerToNotify : EmailItem[] = [];
 
-  alloted_examiners: AllotedItem[];
+  
+  paperStatus: PaperStatus[];
   selectedValues = [];
   public status = [];
   public proposal = [];
 
-  constructor(private allotedService: AllotedService,
+  constructor(private paperReceivedService: PaperRecievedService,
      private http: HttpClient,
+    private examinerService: ExaminerService,
     private notificationService: NotificationService,
     private toasterService: ToasterService,
   ) { 
@@ -47,7 +52,6 @@ export class PaperRecievedComponent implements OnInit {
 
   ngOnInit() {
     this.getStatus();
-
     this.myform = new FormGroup({
 
       text: new FormControl('', [
@@ -57,35 +61,58 @@ export class PaperRecievedComponent implements OnInit {
   });
   }
 
-  updateStatus(alloted, ps_name, idx) {
- 
-    if (alloted.status !== '') {
-      alloted.status = this.status[idx];
-      // alloted.recieved_time = new Date().getDate();
-    }
-    if (alloted.proposal !== '') {
+  updateStatus(alloted, type, idx) {
+
+    console.log(type);
+    if(type === 'proposal'){
       alloted.proposal = this.proposal[idx];
-      // alloted.proposal_sent = new Date().getDate();
+    }
+    if(type === 'status'){
+      alloted.status = this.status[idx];
+      console.log(this.status[idx]);
     }
 
-    this.allotedService.updateAlloted(alloted, ps_name).subscribe(res => this.getStatus());
+    this.paperReceivedService.updateStatus(alloted).subscribe(res => this.getStatus());
   }
 
   getStatus() {
-    this.allotedService.getAlloted().subscribe(res => this.alloted_examiners = res);
+    this.paperReceivedService.getStatus().subscribe(res => this.paperStatus = res);
   }
 
   doit(type, fn, dl) {
-    const json = this.alloted_examiners;
+
+    let paperRecievedStatusToExport = [];
+    if(this.paperStatus.length === 0 ){
+      this.toasterService.pop("info","No Data Found to Export");
+    }
+    else{
+    for( let data of this.paperStatus){
+      paperRecievedStatusToExport.push({
+        'Exam Code': data.exam_code,
+        'Examiner': data.examiner,
+        'Proposal': data.proposal,
+        'Status': data.status,
+        'Proposal Sent': data.proposal_sent,
+        'Received Time': data.received_time
+      })
+    }
+
+    const json = paperRecievedStatusToExport;
+    //console.log(json);
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(json);
-    const wb: XLSX.WorkBook = { Sheets: { 'data': ws }, SheetNames: ['status'] };
+    const wb: XLSX.WorkBook = { Sheets: { 'Paper Recieved Status': ws }, SheetNames: ['Paper Recieved Status'] };
+    // console.log(wb);
     XLSX.write(wb, {bookType: type, bookSST: true, type: 'base64'});
     XLSX.writeFile(wb, fn || ('Received_Status.' + (type || 'xlsx')));
+    this.toasterService.pop('success','Data Exported Successfully');
+    }
+
+    
 }
 
 async notify() {
-    
-  await this.allotedService.getSelectedEmail(this.selectedValues).toPromise().then(
+  
+  await this.examinerService.getSelectedEmail(this.selectedValues).toPromise().then(
     res => {
       this.selectedExaminerToNotify = res;
     }
@@ -112,38 +139,34 @@ this.notificationService.sendMail(this.data).subscribe(res => {
 });
 }
 
-
-
-  // Select All Feature to be imeplemented  //
-
   toggleSelection(scode){
     const idx = this.selectedValues.indexOf(scode);
     if(idx > -1){
       this.selectedValues.splice(idx,1);
-      this.alloted_examiners[idx]['selected'] = false;
+      this.paperStatus[idx]['selected'] = false;
     }
     else{
       this.selectedValues.push(scode);
-      const idx = this.selectedValues.indexOf(scode);
-      this.alloted_examiners[idx]['selected'] = true;
+      const idx = this.selectedValues .indexOf(scode);
+      this.paperStatus[idx]['selected'] = true;
     }
     // console.log(this.selectedValues);
   }
 
 
   selectAll(){
-    if(this.selectedValues.length === this.alloted_examiners.length){
-      this.alloted_examiners.map((item) => {
+    if(this.selectedValues.length === this.paperStatus.length){
+      this.paperStatus.map((item) => {
         item['selected']=false;
         this.selectedValues.pop();
         
       });
     }
     else {
-      this.alloted_examiners.map((item) => {
-        if(!this.selectedValues.includes(item.subject_code)){
+      this.paperStatus.map((item) => {
+        if(!this.selectedValues.includes(item.exam_code)){
           item['selected']=true;
-          this.selectedValues.push(item.subject_code);
+          this.selectedValues.push(item.exam_code);
         }
       });
     }
@@ -170,6 +193,9 @@ this.notificationService.sendMail(this.data).subscribe(res => {
     isValid(field: string) {
       return !this.myform.get(field).valid && this.myform.get(field).touched;
     }
+
+
+    
 
     
 }

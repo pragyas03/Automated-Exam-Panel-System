@@ -22,6 +22,10 @@
       
         <p class="small" *ngIf="isValid('scode')">Subject Code is Mandatory</p>
 
+        <label for="ex_code">Exam Code: </label>
+        <input type="text" class="form-control" name="ex_code" id="ex_code" placeholder="Exam Code" [(ngModel)]="examiner.exam_code"
+        formControlName="ecode" [ngClass]="displayFieldCss('ecode')">
+
         <label for="dept">Department: </label>
         <input type="text" class="form-control" name="department" id="dept" placeholder="Department" [(ngModel)]="examiner.department"
         formControlName="department" [ngClass]="displayFieldCss('department')">
@@ -96,6 +100,7 @@
           <th>#</th>
           <th>Examiner Name</th>
           <th>Subject Code</th>
+          <th>Exam Code</th>
           <th>Department</th>
           <th>Address</th>
           <th>Type</th>
@@ -109,6 +114,7 @@
           <th scope="row">{{idx+1}}</th>
           <td>{{examiner.name}}</td>
           <td>{{examiner.subject_code}}</td>
+          <td>{{examiner.exam_code}}</td>
           <td>{{examiner.department}}</td>
           <td>{{examiner.address}}</td>
           <td>{{examiner.type}}</td>

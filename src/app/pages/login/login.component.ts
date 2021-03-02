@@ -44,6 +44,7 @@ export class LoginComponent implements OnInit {
 
   login() {
     this.userService.getUser(this.loginDetails).subscribe(res => {
+     
     });
   }
 }

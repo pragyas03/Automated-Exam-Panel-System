@@ -10,8 +10,15 @@ alloted.post("/add_alloted", (req, res, next) => {
     if(err){
       return next(err);
     }else{
-      var data = ObjToArray(req.body);
-      console.log(data);
+
+      try{
+        var data = ObjToArray(req.body);
+      }
+      catch(err){
+        return next(err);
+      }
+     
+      
       conn.query("INSERT INTO alloted_examiners (subject_code,examiner,type, exam_code) VALUES ?", [data], function(
         err,
         result,
@@ -104,6 +111,23 @@ alloted.delete("/delete_alloted/:id", (req, res, next) => {
  
 });
 
+alloted.get("/get_valuer/:vlcode",(req, res, next) => {
+  con.getConnection(function(err, conn){
+    if(err){
+      return next(err);
+    }
+    else{
+      var code = req.params.vlcode;
+      console.log(code);
+      conn.query("select name, Subject_Code from examiners where exam_code = ?",code, (err, result) => {
+        if(err) return next(err);
+        conn.release();
+        return res.send(result);
+      });
+    }
+  })
+});
+
 alloted.get("/get_selected_email", (req, res, next) => {
   con.getConnection(function(err, conn){
     if(err){
@@ -114,7 +138,7 @@ alloted.get("/get_selected_email", (req, res, next) => {
       var codes = req.query.codes;
       console.log(codes);
       conn.query(
-        "select email from examiners where Subject_Code IN (?) ",
+        "select email from examiners where exam_code IN (?) ",
         [codes],
         (err, result) => {
           if(err) return next(err);
@@ -126,6 +150,32 @@ alloted.get("/get_selected_email", (req, res, next) => {
   });
  
 });
+
+alloted.get("/get_subject_code_by_exam_code", (req, res, next) => {
+  con.getConnection(function(err, conn){
+    if(err){
+      return next(err);
+    }
+    else{
+      //console.log(req.query.codes);
+      var codes = req.query.codes;
+      //console.log(codes);
+      conn.query('select ')
+      conn.query(
+        "select subject_code from alloted_examiners where exam_code IN (?) ",
+        [codes],
+        (err, result) => {
+          if(err) return next(err);
+        conn.release();
+        return res.send(result);
+        }
+      );
+    }
+  });
+ 
+});
+
+
 
 alloted.get("/exam_codes", (req, res, next) => {
   con.getConnection(function(err, conn){
@@ -147,6 +197,9 @@ alloted.get("/exam_codes", (req, res, next) => {
 });
 
 
+
+
+
 alloted.delete("/delete_all", (req, res, next) => {
   con.getConnection(function(err, conn){
     if(err){
@@ -154,8 +207,7 @@ alloted.delete("/delete_all", (req, res, next) => {
     }
     else{
       conn.query(
-        "truncate alloted_examiners",
-        req.params.id,
+        "delete from alloted_examiners",
         (err, result) => {
           if(err){
             conn.release();

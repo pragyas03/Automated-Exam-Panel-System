@@ -94,7 +94,7 @@ subjects.get("/get_subjects", (req, res, next) => {
       else{
         // console.log(req.params.code);
 
-        conn.query('select subject_code from alloted_examiners where exam_code = ?', req.params.code,(err,results,fields)=>{
+        conn.query('select subject_code from examiners where exam_code = ?', req.params.code,(err,results,fields)=>{
           if(err) return next(err);
           sc = results[0].subject_code;
         

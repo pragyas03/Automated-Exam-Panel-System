@@ -11,6 +11,8 @@ import * as XLSX from 'xlsx';
 import { SubjectService, SubjectItem } from '../services/subject.service';
 
 import { Observable } from 'rxjs/Observable';
+import { PaperRecievedComponent } from '../paper-recieved/paper-recieved.component';
+import { PaperRecievedService } from '../services/paper-recieved.service';
 
 @Component({
   selector: 'app-examiners',
@@ -27,6 +29,7 @@ private examiners: ExaminerItem[];
     id : '',
     name : '',
     subject_code : '',
+    exam_code : '',
     address: '',
     department: '',
     type: '',
@@ -46,6 +49,7 @@ private examiners: ExaminerItem[];
   constructor(private http: HttpClient,
     private router: RouterModule,
     private examinerService: ExaminerService,
+    private paperRecievedService: PaperRecievedService,
     private subjectService: SubjectService,
     private toasterService: ToasterService
   ) {
@@ -65,6 +69,9 @@ private examiners: ExaminerItem[];
       name: new FormControl('', [Validators.required]),
       address: new FormControl('', [Validators.required]),
       scode: new FormControl('', [
+          Validators.required
+      ]),
+      ecode: new FormControl('', [
           Validators.required
       ]),
       department: new FormControl('', [
@@ -114,6 +121,7 @@ private examiners: ExaminerItem[];
   this.examiner.id = '';
   this.examiner.name = '';
   this.examiner.subject_code = '';
+  this.examiner.exam_code = '';
   this.examiner.address = '';
   this.examiner.department = '';
   this.examiner.type = '';
@@ -136,6 +144,7 @@ private examiners: ExaminerItem[];
     this.examiner.id = examiner.id,
     this.examiner.name = examiner.name;
     this.examiner.subject_code = examiner.subject_code,
+    this.examiner.exam_code = examiner.exam_code,
     this.examiner.address = examiner.address;
     this.examiner.email = examiner.email;
     this.examiner.contact = examiner.contact;
@@ -172,6 +181,7 @@ private examiners: ExaminerItem[];
       else{
         this.getExaminers();
         this.toasterService.pop('success','Examiner Details Added Successfully');
+        this.addToPaperRecieved();
       }
       
     });
@@ -214,18 +224,32 @@ private examiners: ExaminerItem[];
     }
 
     doit(type, fn, dl) {
+      let examinersToExport = [];
       // console.log(this.subjects);
       if (this.subjects.length === 0) {
         this.toasterService.pop('info', 'No Details Found to Export');
       }else {
-        const json = this.examiners;
+        for( let data of this.examiners){
+          examinersToExport.push({
+            'Examiner': data.name,
+            'Subject Code': data.subject_code,
+            'Exam Code': data.exam_code,
+            'Department': data.department,
+            'Address': data.address,
+            'Type': data.type,
+            'Email': data.email,
+            'Contact': data.contact
+          })
+        }
+        const json = examinersToExport;
         // console.log(json);
         const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(json);
-        const wb: XLSX.WorkBook = { Sheets: { 'data': ws }, SheetNames: ['data'] };
+        const wb: XLSX.WorkBook = { Sheets: { 'Examiners': ws }, SheetNames: ['Examiners'] };
         XLSX.write(wb, {bookType: type, bookSST: true, type: 'base64'});
         XLSX.writeFile(wb, fn || ('Examiners.' + (type || 'xlsx')));
         this.toasterService.pop('success', 'Data Exported Successfully');
       }
+    
       
   }
 
@@ -244,5 +268,10 @@ private examiners: ExaminerItem[];
         )
       }
     }
+
+    addToPaperRecieved(){
+     this.paperRecievedService.addStatus(this.examiner);
+    }
+
 
 }

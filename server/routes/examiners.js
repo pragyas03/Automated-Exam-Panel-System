@@ -39,6 +39,45 @@ examiners.post("/add_examiner", (req, res, next) => {
 });
 
 
+examiners.get("/get_subjects", (req, res, next) => {
+  con.getConnection(function(err, conn){
+    if(err){
+      return next(err);
+    }
+    else{
+      conn.query(
+        "select subject_code from examiners",
+        (err, result) => {
+          if(err) return next(err);
+        conn.release();
+        return res.send(result);
+        }
+      );
+    }
+  });
+ 
+});
+
+examiners.get("/get_exam_codes_by_subject_codes/:scode", (req, res, next) => {
+  con.getConnection(function(err, conn){
+    if(err){
+      return next(err);
+    }
+    else{
+      var scode = req.params.scode;
+      conn.query(
+        "select exam_code from examiners where subject_code = ?", scode,
+        (err, result) => {
+          if(err) return next(err);
+        conn.release();
+        return res.send(result);
+        } 
+      );
+    }
+  });
+ 
+});
+
 examiners.post("/upload_file", (req, res, next) => {
   con.getConnection(function(err, conn){
     if(err){
@@ -47,7 +86,7 @@ examiners.post("/upload_file", (req, res, next) => {
     else{
       var data = ObjToArray(req.body);
 
-  conn.query("INSERT INTO examiners( name, Subject_code, Department, Address) VALUES ?", [data], function(
+  conn.query("INSERT INTO examiners( name, Subject_code, exam_code, Department, email, contact, Address, type) VALUES ?", [data], function(
     err,
     result
   ) {
@@ -61,7 +100,20 @@ examiners.post("/upload_file", (req, res, next) => {
       }
     }
    else{
+     var values = [];
+
+     for(var v in data){
+       values.push([data[v][2],data[v][0]]);
+     }
+     
+     conn.query("insert into paper_status(exam_code, examiner) values ?",[values], (err, result) =>{
+      if(err){
+        return next(err);
+      }
+     });
+
     conn.release();
+    
     return res.send({status: true, message:"File Uploaded Successfully"});
     }
   });
@@ -179,6 +231,22 @@ examiners.get('/get_internal_examiners/:code',(req, res, next)=>{
     }
   });
 });
+
+
+examiners.get('/get_exam_codes', (req,res,next)=>{
+  con.getConnection(function(err,conn){
+    if(err){
+      return next(err);
+    }
+    else{
+      conn.query('select exam_code from examiners', function(err, result, fields){
+        if(err) return next(err);
+        conn.release();
+        return res.send(result);
+      })
+    }
+  })
+})
 
 
 examiners.get('/get_external_examiners/:code',(req, res, next)=>{

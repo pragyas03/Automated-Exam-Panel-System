@@ -17,17 +17,17 @@ app.get('/generate',function(req,res,next){
             return next(err);
         }
         else{
-            // console.log(req.query.codes);
-            sql = "Select ae.ps_name, ae.subject_code, s.nomenclature, e.department, e.address FROM alloted_examiners AS ae JOIN examiners AS e on ae.subject_code = e.Subject_Code JOIN subjects AS s ON ae.subject_code = s.Code and ae.subject_code IN (?)";
+            console.log(req.query.codes);
+            sql = "select e.name, e.exam_code, s.nomenclature, e.department, e.address FROM examiners as e join subjects as s on e.Subject_Code = s.Code where exam_code IN (?)";
             con.query(sql, [req.query.codes], (err, result, fields) => {
                 if(err) return res.send('Server Error');
-                // console.log(result);
+               console.log(result);
 
 
                 async.forEach(result, function(item, callback){
                     data = {
-                        name: item.ps_name,
-                        code: item.subject_code,
+                        name: item.name,
+                        code: item.exam_code,
                         nomenclature: item.nomenclature,
                         dept: item.department,
                         address: item.address

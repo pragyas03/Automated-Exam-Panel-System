@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { stringify } from 'querystring';
 import { SubjectService, SubjectItem, CodeItem } from '../services/subject.service';
-import { AllotedService, AllotedItem, EmailItem } from '../services/alloted.service';
+import { AllotedService, AllotedItem } from '../services/alloted.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ToasterModule, ToasterService} from 'angular5-toaster';
 import * as $ from 'jquery';
@@ -12,7 +12,7 @@ import { forEach } from '@angular/router/src/utils/collection';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { CheckboxModule } from 'primeng/checkbox';
 import { NotificationService } from '../services/notification.service';
-import { ExaminerItem, ExaminerService } from '../services/examiner.service';
+import { ExaminerItem, ExaminerService, EmailItem } from '../services/examiner.service';
 import { DepartmentItem, DepartmentService } from '../services/department.service';
 
 @Component({
@@ -36,7 +36,7 @@ export class AllotedComponent implements OnInit {
   dept_name: any;
   departments: DepartmentItem[];
   subjectGroups: CodeItem[];
-  alloted_examiners: AllotedItem[] = [];
+  alloted_examiners: ExaminerItem[] = [];
   public selectedExaminerToNotify : EmailItem[] = [];
   selectedValues = [];
   ranges = [];
@@ -116,59 +116,59 @@ export class AllotedComponent implements OnInit {
     });
   }
 
-  allotExaminers() {
-    if(this.allot_internal === '' && this.allot_external === ''){
-      this.toasterService.pop('info', 'No Examiner to Allot. Please Select atleast one');
-      return;
-    }
-    else {
-        if(this.allot_internal != '' && this.allot_internal != null){
-          this.dupAllot = {
-            subject_code: this.allot.subject_code,
-            examiner: this.allot_internal,
-            type: 'internal',
-            exam_code: this.int_sub_code || null
-          }
-          this.toAllot.push(this.dupAllot);
-        }
+//   allotExaminers() {
+//     if(this.allot_internal === '' && this.allot_external === ''){
+//       this.toasterService.pop('info', 'No Examiner to Allot. Please Select atleast one');
+//       return;
+//     }
+//     else {
+//         if(this.allot_internal != '' && this.allot_internal != null){
+//           this.dupAllot = {
+//             subject_code: this.allot.subject_code,
+//             examiner: this.allot_internal,
+//             type: 'internal',
+//             exam_code: this.int_sub_code || null
+//           }
+//           this.toAllot.push(this.dupAllot);
+//         }
                 
-      if(this.allot_external != '' && this.allot_external != null ){
-        this.dupAllot = {
-          subject_code: this.allot.subject_code,
-          examiner: this.allot_external,
-          type: 'external',
-          exam_code: this.ext_sub_code || null,
+//       if(this.allot_external != '' && this.allot_external != null ){
+//         this.dupAllot = {
+//           subject_code: this.allot.subject_code,
+//           examiner: this.allot_external,
+//           type: 'external',
+//           exam_code: this.ext_sub_code || null,
           
-        }
-      this.toAllot.push(this.dupAllot);
-    }
+//         }
+//       this.toAllot.push(this.dupAllot);
+//     }
 
-        this.allotedService.addAlloted(this.toAllot).subscribe(res => {
-          if (res.status === true) {
-            this.toasterService.pop('success', res.message);
-            this.getAlloted();
-          }
-          else{
-            this.toasterService.pop('error', res.message);
-          }
-        });
+//         this.allotedService.addAlloted(this.toAllot).subscribe(res => {
+//           if (res.status === true) {
+//             this.toasterService.pop('success', res.message);
+//             this.getAlloted();
+//           }
+//           else{
+//             this.toasterService.pop('error', res.message);
+//           }
+//         });
 
-    this.allot = {
-      subject_code: '',
-      exam_code: '',
-      examiner: '',
-      type: ''
-    };
-    this.allot_internal = '',
-    this.allot_external = '',
-    this.toAllot = [];
-    this.ranges = [];
-    this.closex();
-  }
-}
+//     this.allot = {
+//       subject_code: '',
+//       exam_code: '',
+//       examiner: '',
+//       type: ''
+//     };
+//     this.allot_internal = '',
+//     this.allot_external = '',
+//     this.toAllot = [];
+//     this.ranges = [];
+//     this.closex();
+//   }
+// }
 
   getAlloted() {
-    this.allotedService.getAlloted().subscribe(res => {
+    this.examinerSerivce.getExaminers().subscribe(res => {
       this.alloted_examiners = res;
       for (let i = 0; i < this.alloted_examiners.length; i++){
         this.alloted_examiners[i]['selected'] = false;
@@ -194,13 +194,12 @@ export class AllotedComponent implements OnInit {
         this.dept_name = res[0].department;
       }
     );
-    // console.log(this.dept_name);
+
     this.departments.forEach(item=>{
       Object.keys(item).forEach((key)=>{
         if(item[key] === this.dept_name){
           rangeFound = true;
           this.createRangeArray(item['start'],item['end'],type);
-          // this.ranges.push({'rangeFound':true,'type':type, 'department':this.dept_name,'start':item['start'],'end':item['end']});
           return;
         }
       })
@@ -209,37 +208,36 @@ export class AllotedComponent implements OnInit {
       this.ranges.push({'rangeFound':false,'type':type, 'department':this.dept_name});
     }
     
-    // console.log(this.ranges);
   }
 
-  deleteAlloted(id) {
-    this.allotedService.deleteAlloted(id).subscribe(res => {
-      if(res.status === false){
-        this.toasterService.pop('error',res.message);
-      }
-      else{
-        this.getAlloted();
-        this.toasterService.pop('success',res.message);
-      }
-    });
-  }
+  // deleteAlloted(id) {
+  //   this.allotedService.deleteAlloted(id).subscribe(res => {
+  //     if(res.status === false){
+  //       this.toasterService.pop('error',res.message);
+  //     }
+  //     else{
+  //       this.getAlloted();
+  //       this.toasterService.pop('success',res.message);
+  //     }
+  //   });
+  // }
 
-  deleteAllAlloted(){
-    console.log(this.alloted_examiners);
-    if(this.alloted_examiners.length===0){
-      this.toasterService.pop('info',"No Details Found to Delete");
-    }
-    else{
-        this.allotedService.deleteAllAlloted().subscribe(
-          res => {
-            if(res.status===true){
-              this.toasterService.pop('success',res.message);
-              this.getAlloted();
-            }
-          }
-        )
-      }
-    }
+  // deleteAllAlloted(){
+  //   // console.log(this.alloted_examiners);
+  //   if(this.alloted_examiners.length===0){
+  //     this.toasterService.pop('info',"No Details Found to Delete");
+  //   }
+  //   else{
+  //       this.allotedService.deleteAllAlloted().subscribe(
+  //         res => {
+  //           if(res.status===true){
+  //             this.toasterService.pop('success',res.message);
+  //             this.getAlloted();
+  //           }
+  //         }
+  //       )
+  //     }
+  //   }
 
 
 
@@ -250,7 +248,7 @@ export class AllotedComponent implements OnInit {
     }
     else{
       console.log(this.ps_name[idx]);
-      this.allotedService.updateAlloted(alloted, this.ps_name[idx]).subscribe(res =>  this.getAlloted());
+      // this.allotedService.updateAlloted(alloted, this.ps_name[idx]).subscribe(res =>  this.getAlloted());
     }
    
 
@@ -267,8 +265,7 @@ export class AllotedComponent implements OnInit {
       XLSX.write(wb, {bookType: type, bookSST: true, type: 'base64'});
       XLSX.writeFile(wb, fn || ('Alloted_Examiners.' + (type || 'xlsx')));
       this.toasterService.pop("success","Data Exported Successfully");
-    }
-    
+    }   
 }
 
 
@@ -321,15 +318,6 @@ myFunction(code){
     console.log(this.selectedValues);
   }
 
-  // getSubjectGroups(scode){
-  //     this.subjectService.getSubjectGroups(scode).subscribe(res => {
-  //      // this.subjectGroups = res;
-  //      // console.log(this.subjectGroups);
-  //       this.groups.push(res);
-  //       // console.log(this.groups);
-  //     })
-  // }
-
   openAddWindow() {
     $('#entry').val('Add');
     $('.modal_form').toggleClass('modal_form_on');
@@ -365,20 +353,20 @@ myFunction(code){
     return input;
   };
 
-  async getExamCode(){
-      await this.allotedService.getAllotedExamCode().toPromise().then(
-        res => {
-          this.examCodesArray = res;
-        }
-      ).then(res =>
-        {
-          this.examCodesArray.forEach(item => {
-          this.allotedExamCodes.push(item['exam_code'])
-          })   
-        }
-      )
+  // async getExamCode(){
+  //     await this.allotedService.getAllotedExamCode().toPromise().then(
+  //       res => {
+  //         this.examCodesArray = res;
+  //       }
+  //     ).then(res =>
+  //       {
+  //         this.examCodesArray.forEach(item => {
+  //         this.allotedExamCodes.push(item['exam_code'])
+  //         })   
+  //       }
+  //     )
       
-  }
+  // }
 
   getVal(start,end){
     // console.log(this.allotedExamCodes);

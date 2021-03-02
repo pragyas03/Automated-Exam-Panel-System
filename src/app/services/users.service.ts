@@ -37,8 +37,8 @@ export class UserService {
   }
 
   loginCheck() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    console.log(currentUser);
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    // console.log(currentUser);
     if (currentUser) {
       // this.toasterService.pop('info', 'User Already Logged In, Please LogOut First');
       this.router.navigate(['/dashboard']);
@@ -48,7 +48,7 @@ export class UserService {
   }
 
   logout() {
-    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
     this.toasterService.pop('info', 'User Logged Out Successfully');
     this.router.navigate(['/login']);
   }
@@ -61,7 +61,7 @@ export class UserService {
           this.toasterService.pop('error', 'Authentication Error', 'Provide Valid Email and Password');
         }else {
           this.toasterService.pop('success', 'Login Succeful', 'Welcome ' + res[0].name);
-          localStorage.setItem('currentUser', JSON.stringify(res));
+          sessionStorage.setItem('currentUser', JSON.stringify(res));
           this.router.navigate(['/dashboard']);
         }
       });
